@@ -149,12 +149,20 @@ const App = () => {
                     </div>
                     <div className="flex items-center justify-center gap-x-5">
 
-                      <button onClick={() => handelUpdate({ ...item, completed: !item.completed })}>
+                      <button onMouseEnter={() => handleHover((item.id + Math.ceil(Math.random() + 500)).toString())}
+                        onMouseLeave={() => handleMouseLeave((item.id + Math.ceil(Math.random() + 500)).toString())} className="relative flex flex-col justify-center items-center" onClick={() => handelUpdate({ ...item, completed: !item.completed })}>
                         {
                           item.completed ?
                             <CircleCheck color="#987EFF" strokeWidth={3} /> :
                             <Circle className="text-slate-300" strokeWidth={3} />
                         }
+                        <span ref={(el) => {
+                          if (el) {
+                            refs.current[(item.id + Math.ceil(Math.random() + 500)).toString()] = el;
+                          }
+                        }} className={`absolute w-full text-nowrap capitalize ${item.completed ? "text-green-600 -left-28" : "text-red-600  -left-40"} font-semibold opacity-0`}>
+                          {item.completed ? "completed" : "not completed yet"}
+                        </span>
                       </button>
                       <button onClick={() => handelDelete(item.id)}>
                         <Trash2 color="red" size={20} />
