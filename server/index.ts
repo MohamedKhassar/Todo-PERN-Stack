@@ -18,7 +18,7 @@ app.use(express.json())
 app.use(cors())
 app.get("/", async (req, res) => {
     try {
-        const student = (await pool.query("SELECT * FROM task;")).rows
+        const student = (await pool.query("SELECT task.id,task.title,task.completed,priority.name as priority FROM task LEFT JOIN priority ON task.priority_id=priority.id ORDER BY task.id ASC;")).rows
         res.json(student);
     } catch (error) {
         const err = error as Error
@@ -27,9 +27,11 @@ app.get("/", async (req, res) => {
     }
 })
 app.post("/", async (req, res) => {
-    const { title, description, priority_id } = req.body
+    const { completed, title, priority } = req.body
+
     try {
-        await pool.query(`INSERT INTO task (title, description, priority_id) VALUES($1,$2,$3) RETURNING *;`, [title, description, priority_id])
+        const priority_id = (await pool.query("SELECT id FROM priority where name=$1", [priority])).rows[0]
+        await pool.query(`INSERT INTO task (completed, title, priority_id) VALUES($1,$2,$3);`, [completed, title, priority_id.id])
         res.json({
             message: "Created Successfully"
         });
@@ -44,9 +46,10 @@ app.post("/", async (req, res) => {
 app.put("/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { description, title, priority_id } = req.body;
-        pool.query("UPDATE task SET title=$1,description=$2,priority_id=$3 where id =$4", [title, description
-            , priority_id, id],
+        const { completed, title, priority } = req.body;
+        const priority_id = (await pool.query("SELECT id FROM priority where name=$1", [priority])).rows[0]
+        pool.query("UPDATE task SET title=$1,completed=$2,priority_id=$3 where id =$4", [title, completed
+            , priority_id.id, id],
             (error, results) => {
                 if (error) {
                     throw error
